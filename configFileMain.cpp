@@ -60,7 +60,8 @@ int main()
         }\
     }\
 }");
-    fixConfigFormat(ss);
+    normalizeConfigFormat(ss);
+    configSyntaxValidator(ss);
     std::cout << "->" << ss << "<-" << std::endl;
     
 }
