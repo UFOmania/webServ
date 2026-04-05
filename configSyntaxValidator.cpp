@@ -119,74 +119,74 @@ bool jumpCurlyBrackets(std::vector<std::string>::iterator &tokenPtr, int &curlyB
     return false;
 }
 
-void validateKeyValue(std::vector<std::string>::iterator &tokenPtr)
-{
-    if ()
-}
-void validateErrorPage(std::vector<std::string>::iterator &tokenPtr)
-{
+// void validateKeyValue(std::vector<std::string>::iterator &tokenPtr)
+// {
+//     if ()
+// }
+// void validateErrorPage(std::vector<std::string>::iterator &tokenPtr)
+// {
 
-}
-void validateLocation(std::vector<std::string>::iterator &tokenPtr)
-{
+// }
+// void validateLocation(std::vector<std::string>::iterator &tokenPtr)
+// {
 
-}
+// }
 
-bool validateServerPart(std::vector<std::string>::iterator &tokenPtr)
-{
-    if (*tokenPtr != "{")
-        return false; // no curlyBrackets after server token 
+// bool validateServerPart(std::vector<std::string>::iterator &tokenPtr)
+// {
+//     if (*tokenPtr != "{")
+//         return false; // no curlyBrackets after server token 
 
-    int curlyBracketsDepth = 1;
+//     int curlyBracketsDepth = 1;
 
-    while (curlyBracketsDepth)
-    {
-        if (jumpCurlyBrackets(tokenPtr, curlyBracketsDepth))
-            continue;
+//     while (curlyBracketsDepth)
+//     {
+//         if (jumpCurlyBrackets(tokenPtr, curlyBracketsDepth))
+//             continue;
 
-        if (curlyBracketsDepth == 0)
-            break;
+//         if (curlyBracketsDepth == 0)
+//             break;
         
-        if (isValidServerField(tokenPtr) == false)
-            return false; //unknown field
+//         if (isValidServerField(tokenPtr) == false)
+//             return false; //unknown field
         
-        tokenPtr++;
-        int id = identifyTokenType(tokenPtr);
-        switch (id)
-        {
-            case KEY:
-                validateKeyValue(tokenPtr);
-                break;
-            case ERROR_PAGE:
-                validateErrorPage(tokenPtr);
-                break;
-            case LOCATION:
-                validateLocation(tokenPtr);
-                break;
-            default:
-                return false ;//error
-                break;
+//         tokenPtr++;
+//         int id = identifyTokenType(tokenPtr);
+//         switch (id)
+//         {
+//             case KEY:
+//                 validateKeyValue(tokenPtr);
+//                 break;
+//             case ERROR_PAGE:
+//                 validateErrorPage(tokenPtr);
+//                 break;
+//             case LOCATION:
+//                 validateLocation(tokenPtr);
+//                 break;
+//             default:
+//                 return false ;//error
+//                 break;
             
-        }
+//         }
         
-        // tokenPtr++;
-        // if (*tokenPtr != ";")
-        //     return false; //field must have one value
+//         // tokenPtr++;
+//         // if (*tokenPtr != ";")
+//         //     return false; //field must have one value
 
             
-    }
-}
+//     }
+// }
 
-bool validateSyntax(std::vector<std::string> &tokens)
-{
-    for (std::vector<std::string>::iterator it = tokens.begin(); it != tokens.end(); it++)
-    {
-        if (*it == "server")
-        {
-            validateServerPart(it, tokens.end());
-        }
-    }
-}
+// bool validateSyntax(std::vector<std::string> &tokens)
+// {
+//     for (std::vector<std::string>::iterator it = tokens.begin(); it != tokens.end(); it++)
+//     {
+//         if (*it == "server")
+//         {
+//             validateServerPart(it, tokens.end());
+//         }
+//     }
+// }
 
 bool configSyntaxValidator(std::string & conf)
 {
@@ -194,8 +194,7 @@ bool configSyntaxValidator(std::string & conf)
     {
         return false;
     }
-    std::vector<std::string> tokens;
-    tokenizeConfig(conf, tokens);
+    
 
     // while (!tokens.empty())
     // {
@@ -203,7 +202,7 @@ bool configSyntaxValidator(std::string & conf)
     //     tokens.pop_front();
     // }
 
-    validateSyntax(tokens);
+    // validateSyntax(tokens);
 
     return true;
 }

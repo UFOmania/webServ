@@ -1,0 +1,9 @@
+{
+	"makefile.launchConfigurations": [
+		{
+			"cwd": "/home/massrayb/Desktop/web-server",
+			"binaryPath": "/home/massrayb/Desktop/web-server/parser",
+			"binaryArgs": []
+		}
+	]
+}

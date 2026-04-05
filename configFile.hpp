@@ -7,6 +7,11 @@
 #include <vector>
 #include <iterator>
 
+// struct Server
+// {
+
+// }
+
 void normalizeConfigFormat(std::string &conf);
 bool configSyntaxValidator(std::string & conf);
 enum tokeType_e
