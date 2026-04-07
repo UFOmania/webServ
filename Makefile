@@ -1,6 +1,14 @@
-flags = #-Wall -Wextra -Werror -fsanitize=address -g3 
+flags =  -fsanitize=address -g3 
 
-src = normalizeConfigFormat.cpp configFileMain.cpp
+src			= 	server/config_file/FileMain.cpp \
+				server/config_file/FormatValidator.cpp \
+				server/config_file/ShapeValidator.cpp \
+				server/config_file/SyntaxValidator.cpp \
+				server/config_file/Tokenizer.cpp \
+				server/config_file/Utils.cpp \
+				server/config_file/validateBlocks.cpp
+
+
 OBJ			= $(src:.cpp=.o)
 
 NAME = parser

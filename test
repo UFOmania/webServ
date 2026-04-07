@@ -1,2 +1,8 @@
-   1       
-{2}
+server/config file/FileMain.cpp \
+server/config file/FormatValidator.cpp \
+server/config file/ShapeValidator.cpp \
+server/config file/SyntaxValidator.cpp \
+server/config file/Tokenizer.cpp \
+server/config file/Utils.cpp \
+server/config file/configFile.hpp \
+server/config file/validateBlocks.cpp
