@@ -6,6 +6,10 @@
 #include <sstream>
 #include <vector>
 #include <iterator>
+#include <fstream>
+
+
+#include "ConfigException.hpp"
 
 #define RESET   "\033[0m"
 #define BOLD    "\033[1m"
@@ -60,6 +64,15 @@ struct token_s {
     std::vector < struct location_s > locations;
 };
 
+struct server_s 
+{
+    server_s () {
+        
+    }
+    std::string listen;
+    int listen;
+}
+
 #define Configtokens std::vector<std::string>
 
 void normalizeConfigFormat(std::string &conf);
@@ -70,7 +83,7 @@ bool validateBlocks( std::string & conf);
 void putErr(std::string msg);
 bool isWord(std::string & s);
 void parse(Configtokens & tokens);
-
+void validateServer(token_s &server);
 
 
 #endif

@@ -424,7 +424,6 @@ void parse(Configtokens & tokens)
     std::cout << "\033[32m-- servers count : " << servers.size() << " -- \033[0m\n";
     for (int i = 0; i < servers.size(); i++)
     {
-
         std::cout << "\033[33m-- servers " << i << " -- \033[0m\n";
         bool status = checkForDoplications(tokens, servers[i], ser);
         if (!status)
