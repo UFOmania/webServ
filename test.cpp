@@ -3,9 +3,6 @@
 
 int main()
 {
-    for(int i = 0; i < 10; i++)
-	{
-		std::cout << i << std::endl;
-		continue;
-	}
+    float t = __INT32_MAX__;
+	std::cout << t << std::endl;
 }

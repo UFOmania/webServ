@@ -3,21 +3,13 @@
 
 #include <string>
 #include <vector>
-
-struct cgiPass_s {
-    std::string extension;
-    std::string path;
-};
-
-struct redirection_s {
-    std::string new_path;
-    std::string status;
-};
+#include "ConfigFileTypes.hpp"
 
 class Location
 {
     private:
-        std::vector < struct cgiPass_s > _cgi_pass;
+        std::vector <cgiPass_t> _cgi_pass;
+        std::vector <redirection_t> _redirections;
         std::string _path;
         std::string _index;
         std::string _root;
@@ -34,6 +26,22 @@ class Location
         ~Location();
         Location(const Location & s);
         Location &operator=( const Location & s);
+
+        void AddCgiPass(const cgiPass_t & cgi);
+        void AddRedirection(const redirection_t & red);
+        void SetPath(const std::string & val);
+        void SetIndex(const std::string & val);
+        void SetRoot(const std::string & val);
+        void SetUploadPath(const std::string & val);
+        void SetClientBodySize(const size_t & val);
+        void SetAutoindex(const bool & val);
+        void SetAllowGet(const bool & val);
+        void SetAllowPost(const bool & val);
+        void SetAllowDelete(const bool & val);
+
+        const std::string &GetRoot() const;
+
+        
 };
 
 

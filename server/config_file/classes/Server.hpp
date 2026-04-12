@@ -4,21 +4,17 @@
 #include <string>
 #include <vector>
 #include "Location.hpp"
-
-struct errorPages_s
-{
-    std::string errorCode;
-    std::string pagePath;
-};
+#include "ConfigFileTypes.hpp"
 
 class Server
 {
     private:
-        std::vector < struct errorPages_s > _error_pages;
+        std::vector < errorPages_t > _error_pages;
         std::vector < class Location > _locations;
-
+        
         std::string _server_name;
         std::string _root;
+        std::string _index;
         size_t _client_body_size;
         int _listen;
         
@@ -28,14 +24,20 @@ class Server
         Server();
         ~Server();
         Server(const Server & s);
+
         Server &operator=( const Server & s);
 
-        void setServerName(const std::string & val);
-        void setListen(const int & val);
-        void setRoot(const size_t & val);
-        void setClientBodySize(const size_t & val);
-        void AddErrorPage(const struct errorPage_s & val);
-        void AddLocation(const Location & location)
+        void SetServerName(const std::string & val);
+        void SetListen(const int & val);
+        void SetRoot(const std::string & val);
+        void SetIndex(const std::string & val);
+        void SetClientBodySize(const size_t & val);
+        void AddErrorPage(const errorPages_t & val);
+        void AddLocation(const Location & location);
+        Location *EditLocation(int idx);
+
+        const std::string &GetRoot() const ;
+        const std::string &GetIndex() const ;
 };
 
 

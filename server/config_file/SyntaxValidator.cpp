@@ -1,81 +1,7 @@
 #include "configFile.hpp"
 
 
-// int isValidServerField(std::vector<std::string>::iterator & tokenPtr)
-// {
-//     char *allowed_keys[] = {
-//         "listen",
-//         "server_name",
-//         "root",
-//         "index",
-//         "client_body_size"};
-    
-//     char *allowd_groups[] = {
-//         "error_page",
-//         "locations"
-//         };
-
-//     for(int i = 0; i < sizeof (allowed_keys); i++)
-//     {
-//         if (*tokenPtr == allowed_keys[i])
-//         {
-//             tokenPtr++;
-//             return 1;
-//         }
-//     }
-//     for(int i = 0; i < sizeof (allowd_groups); i++)
-//     {
-//         if (*tokenPtr == allowd_groups[i])
-//         {
-//             tokenPtr++;
-//             return 2;
-//         }
-//     }
-//     return 0;
-// }
-// bool isValidLocationField(std::string &token)
-// {
-//     char *allowed_fields[] = {
-//         "root",
-//         "index",
-//         "client_body_size",
-//         "allow_methods",
-//         "auto_index",
-//         "upload_path",
-//         "return",
-//         "cgi_pass"
-//         };
-//     for(int i = 0; i < sizeof (allowed_fields); i++)
-//     {
-//         if (token == allowed_fields[i])
-//             return true;
-//     }
-//     return false;
-// }
-
-
-
-
-// bool jumpCurlyBrackets(std::vector<std::string>::iterator &tokenPtr, int &curlyBracketsDepth)
-// {
-//     if (*tokenPtr == "{")
-//     {
-//         tokenPtr++;
-//         curlyBracketsDepth++;
-//         return true;
-//     }
-//     else if (*tokenPtr == "}")
-//     {
-//         tokenPtr++;
-//         curlyBracketsDepth--;
-//         return true;
-//     }
-
-//     return false;
-// }
-
-
-bool extractServers(Configtokens & t, std::vector <std::pair < int, int> > & servers)
+void detectServerStartEnd(Configtokens & t, std::vector <std::pair < int, int> > & servers)
 {
     std::pair<int, int> s;
     bool server = false;
@@ -91,7 +17,7 @@ bool extractServers(Configtokens & t, std::vector <std::pair < int, int> > & ser
                 s.first = i;
             }
             else
-                return false ;
+               throw ConfigException(": Config file must start with a 'server'") ;
         }
         else
         {
@@ -107,7 +33,6 @@ bool extractServers(Configtokens & t, std::vector <std::pair < int, int> > & ser
             }
         }
     }
-    return true;
 }
 
 bool isServerKey(std::string & str)
@@ -134,11 +59,7 @@ void extractSingleValue(Configtokens &t, int & idx, std::string target, std::str
     dst = t[idx];
     idx++;
     if (t[idx] != ";")
-    {
-        putErr(target + " have multiple Values");
-        exit(1);
-        // throw pls
-    }
+        throw  ConfigException(target + " have multiple Values");
 }
 
 bool isLocation(Configtokens & t, int idx)
@@ -151,7 +72,8 @@ bool isLocation(Configtokens & t, int idx)
             idx++;
             if (t[idx] == "{")
                 return true;
-            else return false;
+            else 
+                return false;
         }
         else
             return false;
@@ -161,7 +83,7 @@ bool isLocation(Configtokens & t, int idx)
 
 }
 
-bool extractReturnValue(Configtokens & t, int & idx, struct redirection_s & dst)
+void extractReturnValue(Configtokens & t, int & idx, redirection_t & dst)
 {
     idx++;
     if (isWord(t[idx]))
@@ -173,24 +95,23 @@ bool extractReturnValue(Configtokens & t, int & idx, struct redirection_s & dst)
             dst.new_path = t[idx];
             idx++;
             if (t[idx] == ";")
-                return true;
+                return ;
             else
             {
-                putErr("redirection have unknown values");
-                return false;
+                throw ConfigException("redirection have unknown values " + t[idx]);
+    
             }
 
         }
         else
         {
-            putErr("redirection new_path not Found");
-            return false;
+            throw ConfigException("redirection new_path not Found");
+
         }
     }
     else
     {
-        putErr("redirection status not Found");
-        return false;
+        throw ConfigException("redirection status not Found");
     }
 }
 
@@ -204,7 +125,7 @@ void extractMethodValues(Configtokens & t, int & idx, std::vector <std::string> 
     }
 }
 
-bool extractCgiValues(Configtokens & t, int & idx, std::vector <struct cgiPass_s> & dst)
+void extractCgiValues(Configtokens & t, int & idx, std::vector <cgiPass_t> & dst)
 {
     idx++;
     if (t[idx] == "{")
@@ -212,15 +133,14 @@ bool extractCgiValues(Configtokens & t, int & idx, std::vector <struct cgiPass_s
         idx++;
         while (t[idx] != "}")
         {
-            struct cgiPass_s c;
+            cgiPass_t c;
             c.extension = t[idx];
             idx++;
             c.path = t[idx];
             idx++;
             if (t[idx] != ";")
             {
-                putErr("unknown cgi_pass value");
-                return false;
+                throw ConfigException("unknown cgi_pass value "+ t[idx]);
             }
             else
                 dst.push_back(c);
@@ -230,14 +150,12 @@ bool extractCgiValues(Configtokens & t, int & idx, std::vector <struct cgiPass_s
     }
     else
     {
-        putErr("invalid cgi_pass block");
-        return false;
+        throw ConfigException("invalid cgi_pass block");
     }
 
-    return true;
 }
 
-bool extractErrorPageValues(Configtokens & t, int & idx, std::vector < struct errorPages_s> & dst)
+void extractErrorPageValues(Configtokens & t, int & idx, std::vector < errorPages_t> & dst)
 {
     idx++;
     if (t[idx] == "{")
@@ -245,16 +163,13 @@ bool extractErrorPageValues(Configtokens & t, int & idx, std::vector < struct er
         idx++;
         while (t[idx] != "}")
         {
-            struct errorPages_s e;
+            errorPages_t e;
             e.errorCode = t[idx]; // status code
             idx++;
             e.pagePath = t[idx];// html page
             idx++;
             if (t[idx] != ";")
-            {
-                putErr("unknown at error_page value >"+t[idx]);
-                return false;
-            }
+                throw ConfigException("unknown at error_page value >"+t[idx]);
             else
                 dst.push_back(e);
             idx++;
@@ -262,32 +177,24 @@ bool extractErrorPageValues(Configtokens & t, int & idx, std::vector < struct er
         
     }
     else
-    {
-        putErr("invalid at error_page block");
-        return false;
-    }
-    return true;
+        throw ConfigException("invalid at error_page block");
 }
-void printToken(const token_s& t);
+void printToken(const serverToken_t& t);
 
-bool checkForDoplications(Configtokens & t, std::pair<int, int> borders, std::vector <struct token_s> & dst)
+void ConvertConfigtikensToServerTokens(Configtokens & t, std::pair<int, int> borders, serverToken_t & server)
 {
-
-    token_s server;
-        
     for(int i = borders.first; i <= borders.second; i++)
     {
         if (isServerKey(t[i]))
         {
+            
             if (t[i] == "listen") extractSingleValue(t, i, "listen", server.listen);
             else if (t[i] == "server_name") extractSingleValue(t, i, "server_name", server.sever_name);
             else if (t[i] == "root") extractSingleValue(t, i, "root", server.root);
             else if (t[i] == "index") extractSingleValue(t, i, "index", server.index);
             else if (t[i] == "client_body_size") extractSingleValue(t, i, "client_body_size", server.client_body_size);
-            else {
-                putErr("unknown Key :" + t[i]);
-                return false;
-            }
+            else 
+                throw ConfigException("unknown Key :" + t[i]);
 
         }
         else if (isServerblock(t[i]))
@@ -296,7 +203,7 @@ bool checkForDoplications(Configtokens & t, std::pair<int, int> borders, std::ve
             {
                 // std::cout << BLUE << "location found : " << t[i] << RESET <<std::endl;
                 // std::cout << RED << "<<<<<<"  << RESET <<std::endl;
-                location_s l ;
+                location_t l ;
                 l.path = t[++i];
                 i += 2;
                 int p = 1;
@@ -304,10 +211,6 @@ bool checkForDoplications(Configtokens & t, std::pair<int, int> borders, std::ve
                 {
                     std::cout << BLUE << "      " << t[i] << RESET <<std::endl;
                     
-                    //PROBLEM WITH PARENTS 
-                    //
-                    // if (t[i] == "}") {p--; continue;}
-                    // if (t[i] == "}") {p++; continue;}
 
 
                     if (t[i] == "root") extractSingleValue(t, i, "root", l.root);
@@ -318,11 +221,9 @@ bool checkForDoplications(Configtokens & t, std::pair<int, int> borders, std::ve
                     else if (t[i] == "return") extractReturnValue(t, i, l.redirection);
                     else if (t[i] == "allow_methods") extractMethodValues(t, i, l.allow_methods);
                     else if (t[i] == "cgi_pass") extractCgiValues(t, i, l.cgi_pass);
+                    else 
+                        throw ConfigException("unknown Key :" + t[i]);
 
-                    else {
-                        putErr("unknown Key :" + t[i]);
-                        return false;
-                    }
                     i++;
                 }
                 server.locations.push_back(l);
@@ -334,17 +235,16 @@ bool checkForDoplications(Configtokens & t, std::pair<int, int> borders, std::ve
         }
         else
         {
-            putErr("unexpected token " + t[i]);
-            return false;
+            throw ConfigException("unixpected Key :" + t[i]);
+
         }
         
     }
-    dst.push_back(server);
-    printToken(server);
-    return true;
+    printToken(server); //debugging
+
 }
 
-void printToken(const token_s& t)
+void printToken(const serverToken_t & t)
 {
     std::cout << BOLD << BLUE << "\n===== SERVER =====\n" << RESET;
 
@@ -369,7 +269,7 @@ void printToken(const token_s& t)
 
     for (size_t i = 0; i < t.locations.size(); i++)
     {
-        const location_s& loc = t.locations[i];
+        const location_t loc = t.locations[i];
 
         std::cout << BOLD << "\n[Location " << i << "]\n" << RESET;
 
@@ -386,10 +286,7 @@ void printToken(const token_s& t)
             std::cout << loc.allow_methods[j] << " ";
         std::cout << "\n";
 
-        std::cout << YELLOW << "flags: " << RESET
-                  << "GET(" << loc.allowGET << ") "
-                  << "POST(" << loc.allowPOST << ") "
-                  << "DELETE(" << loc.allowDELETE << ")\n";
+
 
         // 🔁 Redirection
         if (!loc.redirection.new_path.empty())
@@ -415,22 +312,19 @@ void printToken(const token_s& t)
     std::cout << BLUE << "=====================\n" << RESET;
 }
 
-void parse(Configtokens & tokens)
+void parse(Configtokens & tokens, std::vector<Server> & servers)
 {
-    std::vector < std::pair < int,int > > servers;
-    std::vector <struct token_s> ser;
+    std::vector < std::pair < int,int > > serverStartEnd;
 
-    extractServers(tokens, servers); // throw pls
-    std::cout << "\033[32m-- servers count : " << servers.size() << " -- \033[0m\n";
-    for (int i = 0; i < servers.size(); i++)
+    detectServerStartEnd(tokens, serverStartEnd);
+
+    for (int i = 0; i < serverStartEnd.size(); i++)
     {
-        std::cout << "\033[33m-- servers " << i << " -- \033[0m\n";
-        bool status = checkForDoplications(tokens, servers[i], ser);
-        if (!status)
-            std::cout<< RED << "FAILED" << RESET << std::endl;
+        serverToken_t serverToken;
+        ConvertConfigtikensToServerTokens(tokens, serverStartEnd[i], serverToken);
+
+        Server newServer;
+        validateServer(serverToken, newServer);
+        servers.push_back(newServer);
     }
-
-    
-
-
 }

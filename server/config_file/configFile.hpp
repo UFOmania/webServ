@@ -7,6 +7,8 @@
 #include <vector>
 #include <iterator>
 #include <fstream>
+#include "config_file/classes/Server.hpp"
+#include "server/config_file/classes/ConfigFileTypes.hpp"
 
 
 #include "ConfigException.hpp"
@@ -20,61 +22,6 @@
 #define BLUE    "\033[34m"
 #define CYAN    "\033[36m"
 
-struct errorPages_s
-{
-    std::string errorCode;
-    std::string pagePath;
-};
-
-struct cgiPass_s {
-    std::string extension;
-    std::string path;
-};
-struct redirection_s {
-    std::string new_path;
-    std::string status;
-};
-
-
-
-struct location_s
-{
-    std::string path;
-    std::string index;
-    std::string root;
-    std::string upload_path;
-    std::string auto_index;
-    struct redirection_s redirection;
-    std::vector <std::string> allow_methods;
-
-    bool allowGET;
-    bool allowPOST;
-    bool allowDELETE;
-    std::string client_body_size;
-    std::vector < struct cgiPass_s > cgi_pass;
-};
-
-struct token_s {
-    std::string listen;
-    std::string sever_name;
-    std::string root;
-    std::string index;
-    std::string client_body_size;
-    std::vector < struct errorPages_s > error_pages;
-    std::vector < struct location_s > locations;
-};
-
-struct server_s 
-{
-    server_s () {
-        
-    }
-    std::string listen;
-    int listen;
-}
-
-#define Configtokens std::vector<std::string>
-
 void normalizeConfigFormat(std::string &conf);
 bool configSyntaxValidator(std::string & conf);
 bool validateShape(Configtokens &t);
@@ -83,7 +30,7 @@ bool validateBlocks( std::string & conf);
 void putErr(std::string msg);
 bool isWord(std::string & s);
 void parse(Configtokens & tokens);
-void validateServer(token_s &server);
+void validateServer(serverToken_t &server, Server & s);
 
 
 #endif

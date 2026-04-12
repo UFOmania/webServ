@@ -35,4 +35,16 @@ Location &Location::operator=(const Location & l)
     _allowPOST = l._allowPOST;
 }
 
+void Location::AddCgiPass(const cgiPass_t & cgi)                    {   _cgi_pass.push_back(cgi);       }
+void Location::AddRedirection(const redirection_t & red)            {   _redirections.push_back(red);   }
+void Location::SetPath(const std::string & val)                     {   _path = val;                    }
+void Location::SetIndex(const std::string & val)                    {   _index = val;                   }
+void Location::SetRoot(const std::string & val)                     {   _root = val;                    }
+void Location::SetUploadPath(const std::string & val)               {   _upload_path = val;             }
+void Location::SetClientBodySize(const size_t & val)                {   _upload_path = val;             }
+void Location::SetAutoindex(const bool & val)                       {   _upload_path = val;             }
+void Location::SetAllowGet(const bool & val)                        {   _upload_path = val;             }
+void Location::SetAllowPost(const bool & val)                       {   _upload_path = val;             }
+void Location::SetAllowDelete(const bool & val)                     {   _upload_path = val;             }
+const std::string &Location::GetRoot() const                        {   return _root;                   }
 

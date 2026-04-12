@@ -93,6 +93,7 @@ server {\
     // configSyntaxValidator(ss);
     validateBlocks(ss);
 
+
 	Configtokens tokens;
     tokenizeConfig(ss, tokens);
 	bool status = validateShape(tokens);
