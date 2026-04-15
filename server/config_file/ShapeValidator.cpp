@@ -46,7 +46,7 @@ int detectType(Configtokens & t, size_t &idx)
 }
 
 
-bool validateShape(Configtokens &t)
+void validateShape(Configtokens &t)
 {
 	int s = t.size();
 	int blockDepth = 0;
@@ -59,10 +59,9 @@ bool validateShape(Configtokens &t)
 		{
 			// std::cout << "End Block detected } --\n";
 			if (freshGroup)
-			{
-				putErr("Empty block is not allowed");
-				return false; 
-			}
+				throw ConfigException("Empty block is not allowed");
+
+
 			blockDepth--;
 			continue;
 		}
@@ -82,10 +81,9 @@ bool validateShape(Configtokens &t)
 				break;
 			case (3):
 				if (blockDepth == 0)
-				{
-					putErr("Value outside of a block is not allowed");
-					return false;
-				}
+					throw ConfigException("Value outside of a block is not allowed");
+
+
 				freshGroup = false;
 				//validate key
 				// std::cout << "keyValue detected\n";
@@ -93,9 +91,8 @@ bool validateShape(Configtokens &t)
 			default://the probleam was here
 				//error
 				// std::cout << "error detected\n";
-				return false;
+				throw ConfigException("unixpected error in configFile shape");
 		}
 		
 	}
-	return true;
 }

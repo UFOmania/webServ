@@ -3,10 +3,20 @@ flags =  -fsanitize=address -g3
 src			= 	server/config_file/FileMain.cpp \
 				server/config_file/FormatValidator.cpp \
 				server/config_file/ShapeValidator.cpp \
-				server/config_file/SyntaxValidator.cpp \
+				server/config_file/parseConfig.cpp \
 				server/config_file/Tokenizer.cpp \
 				server/config_file/Utils.cpp \
-				server/config_file/validateBlocks.cpp
+				server/config_file/validateBlocks.cpp \
+				server/config_file/validateServerValues.cpp \
+				server/config_file/classes/ConfigException.cpp \
+				server/config_file/classes/Location.cpp \
+				server/config_file/classes/Server.cpp
+				
+				
+				
+				
+				
+				
 
 
 OBJ			= $(src:.cpp=.o)

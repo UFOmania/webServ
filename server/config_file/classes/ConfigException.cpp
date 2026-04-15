@@ -1,11 +1,11 @@
 
-#include <ConfigException.hpp>
+#include "ConfigException.hpp"
 
 ConfigException::ConfigException(){}
-ConfigException::~ConfigException(){}
-ConfigException::ConfigException(std::string msg) : _msg(msg) {}
+ConfigException::~ConfigException() throw () {}
+ConfigException::ConfigException(std::string msg) : _msg(std::string( "Error: " + msg)) {}
 
-const char * ConfigException::what() const
+const char * ConfigException::what() const throw() 
 {
-    return std::string("Error: " + _msg).c_str();
+    return _msg.c_str();
 }

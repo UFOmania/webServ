@@ -9,8 +9,9 @@
 class Server
 {
     private:
-        std::vector < errorPages_t > _error_pages;
-        std::vector < class Location > _locations;
+        std::vector < errorPages_t >    _error_pages;
+        std::vector <cgiPass_t>         _cgi_pass;
+        std::vector < class Location >  _locations;
         
         std::string _server_name;
         std::string _root;
@@ -19,7 +20,6 @@ class Server
         int _listen;
         
 
-    
     public:
         Server();
         ~Server();
@@ -34,10 +34,12 @@ class Server
         void SetClientBodySize(const size_t & val);
         void AddErrorPage(const errorPages_t & val);
         void AddLocation(const Location & location);
+        void AddCgiPass(const cgiPass_t & cgi);
         Location *EditLocation(int idx);
 
         const std::string &GetRoot() const ;
         const std::string &GetIndex() const ;
+        void PrintServerInfo() const;
 };
 
 

@@ -8,8 +8,8 @@
 class Location
 {
     private:
-        std::vector <cgiPass_t> _cgi_pass;
         std::vector <redirection_t> _redirections;
+        
         std::string _path;
         std::string _index;
         std::string _root;
@@ -27,7 +27,6 @@ class Location
         Location(const Location & s);
         Location &operator=( const Location & s);
 
-        void AddCgiPass(const cgiPass_t & cgi);
         void AddRedirection(const redirection_t & red);
         void SetPath(const std::string & val);
         void SetIndex(const std::string & val);
@@ -40,6 +39,8 @@ class Location
         void SetAllowDelete(const bool & val);
 
         const std::string &GetRoot() const;
+        const std::string &GetPath() const;
+        void PrintLocationInfo(size_t index) const;
 
         
 };

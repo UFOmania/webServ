@@ -18,17 +18,17 @@ void validateNumiricValues(serverToken_t & server, Server & s)
     {
         val = std::strtol(server.client_body_size.c_str(), &end, 10);
         if ((end && *end != '\0') || val < 0)
-        throw ConfigException("Invalid client_body_size value >" + server.listen);
+            throw ConfigException("Invalid client_body_size value >" + server.client_body_size);
+        s.SetClientBodySize(val);
     }
-    s.SetClientBodySize(val);
     
     for(size_t j = 0; j < server.locations.size(); j++)
     {
 
-        val = std::strtol(server.client_body_size.c_str(), &end, 10);
+        val = std::strtol(server.locations[j].client_body_size.c_str(), &end, 10);
         if ((end && *end != '\0') || val < 0)
             throw ConfigException("Invalid client_body_size value >" + server.locations[j].client_body_size);
-        Location *location =s.EditLocation(j);
+        Location *location = s.EditLocation(j);
         if (location)
             location->SetClientBodySize(val);
     }
@@ -53,31 +53,40 @@ void validateboolValues(serverToken_t & server, Server & s)
 bool validateFile(std::string path, char type)
 {
     struct stat info;
-    if (stat(path.c_str(), &info) == 0)
-    {
-        if (type == 'f')
-            return (S_ISREG(info.st_mode));
-        else if (type == 'd')
-            return (S_ISDIR(info.st_mode));
-        else if (type == 0)
-            return S_ISREG(info.st_mode) || S_ISDIR(info.st_mode);
+    if (stat(path.c_str(), &info) != 0)
         return false;
-    }
-    else
-        return false;
-}
 
+    switch (type)
+    {
+        case 'f':
+            if (!S_ISREG(info.st_mode)) return false;
+            break;
+        case 'd':
+            if (!S_ISDIR(info.st_mode)) return false;
+            break;
+            
+        case 0:
+            if (!S_ISREG(info.st_mode) && !S_ISDIR(info.st_mode)) return false;
+            break;
+
+        default:
+            return false;
+    }
+    return true;
+}
 void validateStringValues (serverToken_t & server, Server & s)
 {
     //root
-    
-    validateFile(server.root, 'd');
+    if (server.root.empty())
+        throw ConfigException("no root found");
+    if (!validateFile(server.root, 'd'))
+        throw ConfigException("Invalid root value >" + server.root);
     s.SetRoot(server.root);
-    if (!server.index.empty())
-    {
-        validateFile((s.GetRoot() + server.index), 'f');
-        s.SetIndex(s.GetRoot() + server.index);
-    }
+
+    //index
+    if (!validateFile((s.GetRoot() + server.index), 'f'))
+        throw ConfigException("Invalid index value >" + server.index);
+    s.SetIndex(s.GetRoot() + server.index);
 
     for(size_t i = 0; i < server.locations.size(); i++)
     {
@@ -86,31 +95,44 @@ void validateStringValues (serverToken_t & server, Server & s)
 
         //location root
         if (!server.locations[i].root.empty())
-            validateFile(server.locations[i].root, 'd');
+        {
+            if ( !validateFile(server.locations[i].root, 'd'))
+               throw ConfigException("Invalid root value >" + server.locations[i].root);
+        }
         else
             server.locations[i].root = s.GetRoot();
         l->SetRoot(server.locations[i].root);
 
+        
         //path
-        validateFile((l->GetRoot() + server.locations[i].path), 0);
-        l->SetPath(l->GetRoot() + server.locations[i].path);
+        if (!server.locations[i].path.empty())
+        {
+            if ( !validateFile((l->GetRoot() + server.locations[i].path), 0))
+                throw ConfigException("Invalid location path value >" + server.locations[i].path);
+            l->SetPath(l->GetRoot() + server.locations[i].path);
+        }
 
         //upload path
-        validateFile(l->GetRoot() + server.locations[i].upload_path, 'd');
-        l->SetUploadPath(l->GetRoot() + server.locations[i].upload_path);
+        if (!server.locations[i].upload_path.empty())
+        {
+            if ( !validateFile(l->GetRoot() + server.locations[i].upload_path, 'd'))
+                throw ConfigException("Invalid upload_path value >" + server.locations[i].upload_path);
+            l->SetUploadPath(l->GetRoot() + server.locations[i].upload_path);
+        }
 
         //location index
         if (!server.locations[i].index.empty())
         {
-            validateFile(l->GetRoot() + server.locations[i].index, 'f');
-            l->SetIndex(l->GetRoot() + server.locations[i].index);
+            std::cout << RED << l->GetPath() + server.locations[i].index << RESET << std::endl;
+            if ( !validateFile(l->GetPath() + server.locations[i].index, 'f'))
+                throw ConfigException("Invalid location index value >" + server.locations[i].index);
+            l->SetIndex(l->GetPath() + server.locations[i].index);
         }
         else
             l->SetIndex(s.GetIndex());
     }
 
 }
-
 void validateErrorPages (serverToken_t & server, Server & s)
 {
     int i = 0;
@@ -124,8 +146,8 @@ void validateErrorPages (serverToken_t & server, Server & s)
         i = std::strtol(e.errorCode.c_str(), &end, 10);
         if (!end || *end != '\0' || i < 100 || i > 599)
             throw ConfigException("Invalid error_page Code value >" + e.errorCode);
-
-        if (!validateFile(s.GetRoot() + e.pagePath, 'f'))
+        e.pagePath = s.GetRoot() + "/" + e.pagePath;
+        if (!validateFile(e.pagePath, 'f'))
             throw ConfigException("Invalid error_page path value >" + e.pagePath);
 
         //save to server
@@ -137,10 +159,11 @@ void validateAllowMethods(serverToken_t & server, Server & s)
 {
     for(int i = 0; i < server.locations.size(); i++)
     {
-        int G,P,D = false;
+        int G = false,P = false,D = false;
         std::vector <std::string> & methods = server.locations[i].allow_methods;
-        for (int j = 1; methods.size(); j++)
+        for (int j = 0; j < methods.size(); j++)
         {
+
             if (methods[j] == "GET")
             {
                 if (G) //check for duplicated values
@@ -173,23 +196,18 @@ void validateAllowMethods(serverToken_t & server, Server & s)
 }
 void validateCgiPass(serverToken_t & server, Server & s)
 {
-    for (int i = 0; i < server.locations.size(); ++i)
-    {
-        //dst
-        Location * l = s.EditLocation(i);
         
-        //check and save
-        for (int j = 0; j < server.locations[i].cgi_pass.size(); j++)
-        {
-            cgiPass_t cgi = server.locations[i].cgi_pass[j];
-            if (!validateFile(cgi.path, 'f'))
-                throw ConfigException("Invalid cgi execution path >" + cgi.path);
+    //check and save
+    for (int j = 0; j < server.cgi_pass.size(); j++)
+    {
+        cgiPass_t cgi = server.cgi_pass[j];
+        if (!validateFile(cgi.path, 'f'))
+            throw ConfigException("Invalid cgi execution path >" + cgi.path);
 
-            //save
-            l->AddCgiPass(cgi);
-        }
-
+        //save
+        s.AddCgiPass(cgi);
     }
+
 }
 void validateRedirections(serverToken_t & server, Server & s)
 {
@@ -202,6 +220,9 @@ void validateRedirections(serverToken_t & server, Server & s)
 
         //src
         redirection_t red = server.locations[i].redirection;
+
+        if (red.status.empty() || red.new_path.empty())
+            return;
 
         //check
         if (red.status.length() != 3)

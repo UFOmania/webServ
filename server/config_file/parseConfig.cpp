@@ -25,7 +25,7 @@ void detectServerStartEnd(Configtokens & t, std::vector <std::pair < int, int> >
             else if(t[i] == "}") p--;
             if (p == 0)
             {
-            std::cout << "++++++\n";
+            std::cout << "\n";
                 s.first += 2;
                 s.second = i - 1;
                 server = false;
@@ -49,7 +49,8 @@ bool isServerblock(std::string & str)
 {
     return (
         str == "error_page" ||
-        str == "location"
+        str == "location" || 
+        str == "cgi_pass"
     );
 }
 
@@ -97,22 +98,13 @@ void extractReturnValue(Configtokens & t, int & idx, redirection_t & dst)
             if (t[idx] == ";")
                 return ;
             else
-            {
-                throw ConfigException("redirection have unknown values " + t[idx]);
-    
-            }
-
+                throw ConfigException("redirection have unknown values >" + t[idx]);
         }
         else
-        {
-            throw ConfigException("redirection new_path not Found");
-
-        }
+            throw ConfigException("redirection new_path not Found >" + t[idx]);
     }
     else
-    {
-        throw ConfigException("redirection status not Found");
-    }
+        throw ConfigException("redirection status not Found >" + t[idx]);
 }
 
 void extractMethodValues(Configtokens & t, int & idx, std::vector <std::string> & dst)
@@ -188,11 +180,32 @@ void ConvertConfigtikensToServerTokens(Configtokens & t, std::pair<int, int> bor
         if (isServerKey(t[i]))
         {
             
-            if (t[i] == "listen") extractSingleValue(t, i, "listen", server.listen);
-            else if (t[i] == "server_name") extractSingleValue(t, i, "server_name", server.sever_name);
-            else if (t[i] == "root") extractSingleValue(t, i, "root", server.root);
-            else if (t[i] == "index") extractSingleValue(t, i, "index", server.index);
-            else if (t[i] == "client_body_size") extractSingleValue(t, i, "client_body_size", server.client_body_size);
+            if (t[i] == "listen")
+            {
+                extractSingleValue(t, i, "listen", server.listen);
+                server.serevrElementsCounter.listen++;
+            }
+            else if (t[i] == "server_name")
+            {
+                extractSingleValue(t, i, "server_name", server.sever_name);
+                server.serevrElementsCounter.sever_name++;
+            }
+            else if (t[i] == "root")
+            {
+                extractSingleValue(t, i, "root", server.root);
+                server.serevrElementsCounter.root++;
+            }
+            else if (t[i] == "index")
+            {
+                extractSingleValue(t, i, "index", server.index);
+                server.index = "/" + server.index;
+                server.serevrElementsCounter.index++;
+            }
+            else if (t[i] == "client_body_size")
+            {
+                extractSingleValue(t, i, "client_body_size", server.client_body_size);
+                server.serevrElementsCounter.client_body_size++;
+            }
             else 
                 throw ConfigException("unknown Key :" + t[i]);
 
@@ -201,26 +214,51 @@ void ConvertConfigtikensToServerTokens(Configtokens & t, std::pair<int, int> bor
         {
             if (isLocation(t, i))
             {
-                // std::cout << BLUE << "location found : " << t[i] << RESET <<std::endl;
-                // std::cout << RED << "<<<<<<"  << RESET <<std::endl;
+
                 location_t l ;
+                l.locationElementsCounter = (locationElementsCounter_t){0};
                 l.path = t[++i];
+                l.locationElementsCounter.path++;
                 i += 2;
                 int p = 1;
                 while (t[i] != "}")
                 {
-                    std::cout << BLUE << "      " << t[i] << RESET <<std::endl;
-                    
-
-
-                    if (t[i] == "root") extractSingleValue(t, i, "root", l.root);
-                    else if (t[i] == "index") extractSingleValue(t, i, "index", l.index);
-                    else if (t[i] == "client_body_size") extractSingleValue(t, i, "client_body_size", l.client_body_size);
-                    else if (t[i] == "auto_index") extractSingleValue(t, i, "auto_index", l.auto_index);
-                    else if (t[i] == "upload_path") extractSingleValue(t, i, "upload_path", l.upload_path);
-                    else if (t[i] == "return") extractReturnValue(t, i, l.redirection);
-                    else if (t[i] == "allow_methods") extractMethodValues(t, i, l.allow_methods);
-                    else if (t[i] == "cgi_pass") extractCgiValues(t, i, l.cgi_pass);
+                    if (t[i] == "root")
+                    {
+                        extractSingleValue(t, i, "root", l.root);
+                        l.locationElementsCounter.root++;
+                    }
+                    else if (t[i] == "index")
+                    {
+                        extractSingleValue(t, i, "index", l.index);
+                        l.index = "/" + l.index;
+                        l.locationElementsCounter.index++;
+                    }
+                    else if (t[i] == "client_body_size")
+                    {
+                        extractSingleValue(t, i, "client_body_size", l.client_body_size);
+                        l.locationElementsCounter.client_body_size++;
+                    }
+                    else if (t[i] == "auto_index")
+                    {
+                        extractSingleValue(t, i, "auto_index", l.auto_index);
+                        l.locationElementsCounter.auto_index++;
+                    }
+                    else if (t[i] == "upload_path")
+                    {
+                        extractSingleValue(t, i, "upload_path", l.upload_path);
+                        l.locationElementsCounter.upload_path++;
+                    }
+                    else if (t[i] == "return")
+                    {
+                        extractReturnValue(t, i, l.redirection);
+                        l.locationElementsCounter.redirection++;
+                    }
+                    else if (t[i] == "allow_methods")
+                    {
+                        extractMethodValues(t, i, l.allow_methods);
+                        l.locationElementsCounter.allow_methods++;
+                    }
                     else 
                         throw ConfigException("unknown Key :" + t[i]);
 
@@ -228,19 +266,26 @@ void ConvertConfigtikensToServerTokens(Configtokens & t, std::pair<int, int> bor
                 }
                 server.locations.push_back(l);
             }
+
             else if (t[i] == "error_page")
             {
                 extractErrorPageValues(t, i, server.error_pages);
+                server.serevrElementsCounter.error_pages++;
             }
-        }
-        else
-        {
-            throw ConfigException("unixpected Key :" + t[i]);
+
+            else if (t[i] == "cgi_pass")
+            {
+                extractCgiValues(t, i, server.cgi_pass);
+                server.serevrElementsCounter.cgi_pass++;
+            }
 
         }
+
+        else
+            throw ConfigException("unixpected Key :" + t[i]);
         
     }
-    printToken(server); //debugging
+    // printToken(server); //debugging
 
 }
 
@@ -262,6 +307,15 @@ void printToken(const serverToken_t & t)
                   << "code: " << RESET << t.error_pages[i].errorCode
                   << YELLOW << " path: " << RESET << t.error_pages[i].pagePath
                   << "\n";
+    }
+    // ⚙️ CGI
+
+    std::cout << GREEN << "cgi_pass:\n" << RESET;
+    for (size_t j = 0; j < t.cgi_pass.size(); j++)
+    {
+        std::cout << "  " << CYAN << t.cgi_pass[j].extension
+                    << RESET << " -> "
+                    << t.cgi_pass[j].path << "\n";
     }
 
     // 🟢 Locations
@@ -296,23 +350,31 @@ void printToken(const serverToken_t & t)
                       << loc.redirection.new_path << "\n";
         }
 
-        // ⚙️ CGI
-        if (!loc.cgi_pass.empty())
-        {
-            std::cout << GREEN << "cgi_pass:\n" << RESET;
-            for (size_t j = 0; j < loc.cgi_pass.size(); j++)
-            {
-                std::cout << "  " << CYAN << loc.cgi_pass[j].extension
-                          << RESET << " -> "
-                          << loc.cgi_pass[j].path << "\n";
-            }
-        }
+        
     }
 
     std::cout << BLUE << "=====================\n" << RESET;
 }
 
-void parse(Configtokens & tokens, std::vector<Server> & servers)
+void detectDuplication(serverToken_t & s)
+{
+    for (int idx = 0; idx < sizeof(serverElementsCounter_t); idx++)
+    {
+        unsigned char *val = (unsigned char *)&s.serevrElementsCounter + idx;
+        if (*val > 1) 
+            throw ConfigException("duplication in server element has been detected ");
+    }
+    for (int i = 0; i < s.locations.size(); i++)
+    {
+        for (int idx = 0; idx < sizeof(locationElementsCounter_t); idx++)
+        {
+            unsigned char *val = (unsigned char *)&s.locations[i].locationElementsCounter + idx;
+            if (*val > 1) 
+                throw ConfigException("duplication in location element has been detected");
+        }
+    }
+}
+void parseConfig(Configtokens & tokens, std::vector<Server> & servers)
 {
     std::vector < std::pair < int,int > > serverStartEnd;
 
@@ -321,10 +383,14 @@ void parse(Configtokens & tokens, std::vector<Server> & servers)
     for (int i = 0; i < serverStartEnd.size(); i++)
     {
         serverToken_t serverToken;
+        serverToken.serevrElementsCounter = (serverElementsCounter_t){0};
         ConvertConfigtikensToServerTokens(tokens, serverStartEnd[i], serverToken);
+        detectDuplication(serverToken);
+
 
         Server newServer;
         validateServer(serverToken, newServer);
+        newServer.PrintServerInfo();
         servers.push_back(newServer);
     }
 }
